@@ -1,4 +1,4 @@
-const tokens = {
+export const tokenTypes = {
     // Single-character tokens.
     LEFT_PAREN: 0, RIGHT_PAREN: 10, LEFT_BRACE: 20, RIGHT_BRACE: 30,
     COMMA: 40, DOT: 50, MINUS: 60, PLUS: 70, SEMICOLON: 80, SLASH: 90, STAR: 100,

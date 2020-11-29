@@ -2,41 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import useInterval from '@use-it/interval';
 import * as d3 from "d3";
 import styled from 'styled-components';
+import { lex } from "./lexer";
 
-const generateDataset = () => (
-  Array(100).fill(0).map(() => ([
-    Math.random() * (100 - 24) + 12,
-    Math.random() * (100 - 24) + 12,
-  ]))
-)
 
-const Circles = () => {
-  const [dataset, setDataset] = useState(
-    generateDataset()
-  )
-  const ref = useRef()
-  useEffect(() => {
-    const svgElement = d3.select(ref.current)
-    svgElement.selectAll("circle")
-      .data(dataset)
-      .join("circle")
-        .attr("cx", d => d[0])
-        .attr("cy", d => d[1])
-        .attr("r",  3)
-  }, [dataset])
-  useInterval(() => {
-    const newDataset = generateDataset()
-    setDataset(newDataset)
-  }, 500)
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      preserveAspectRatio="xMidYMid meet"
-      ref={ref}
-      style={{width: '100px', height: '100px', position: 'relative'}}
-    />
-  )
+function p(x) {
+  return JSON.stringify(x, null, 2);
 }
+
 
 
 const AppContainer = styled.div`
@@ -48,31 +20,53 @@ height: 100%;
 
 const Outputs_ = styled.div`
 display: grid;
-grid-template: 1fr 1fr 1fr / 1fr;
+grid-template: repeat(3, minmax(0, 1fr)) / 1fr;
 width: 100%;
 height: 100%;
 `;
 
+
+const LexerTextOutputContainer_ = styled.div`
+height: 100%;
+width: 100%;
+background-color: wheat;
+overflow-y: scroll;
+min-height: 0;
+`;
+const LexerTextOutput_ = styled.pre`
+background-color: transparent;
+height: 0;
+margin: 0;
+padding: 0;
+`;
+
+const generateNewOutputState = (s) => {
+  let lexOutput = null;
+  try {
+    lexOutput = lex(s.input);
+  } catch (error) {
+    lexOutput = "error lexing: " + error;
+  }
+
+  return (<>
+    <LexerTextOutputContainer_>
+      <LexerTextOutput_>{p(lexOutput)}</LexerTextOutput_>
+    </LexerTextOutputContainer_>
+    <ColoredRect color='#eeeeee' />
+    <Print text={s.input} />
+  </>)
+}
+
 const Outputs = () => {
-  const [gs, ss] = useState(
-    <>
-      <ColoredRect color='Chocolate' />
-      <ColoredRect color='CornflowerBlue' />
-      <Print text={getAppState().input} />
-    </>
-  );
-  const lastState = getAppState().input;
+  const lastS = getAppState();
+  const [gs, ss] = useState(generateNewOutputState(lastS));
   useInterval(() => {
-    if (lastState === getAppState().input) {
+    const s = getAppState();
+    if (lastS.input === s.input) {
       return;
     }
     console.log('input diff detected, rerendering');
-    ss(
-      <>
-        <div id="tree-container"></div>
-        <ColoredRect color='#eeeeee' />
-        <Print text={getAppState().input} />
-      </>);
+    ss(generateNewOutputState(s));
   }, 500);
   return <Outputs_>
     {gs}
@@ -80,11 +74,9 @@ const Outputs = () => {
 }
 
 const ColoredRect = styled.div`
-position: relative;
 background-color: ${props => props.color ? props.color : '#ee0000'};
 width: 100%;
 height: 100%;
-z-index: 1;
 `;
 
 const InputTextbox_ = styled.textarea`
