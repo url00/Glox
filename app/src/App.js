@@ -95,11 +95,10 @@ background-color: aliceblue;
 width: 100%;
 height: 100%;
 padding: 0;
-  resize: none;
-  border: 0 none;
-  outline: none;
-  overflow-x: auto;
-  
+resize: none;
+border: 0 none;
+outline: none;
+overflow-x: auto;
 `
 
 const InputTextbox = () => {
@@ -112,7 +111,9 @@ const InputTextbox = () => {
 
 function getDefaultAppState() {
   return {
-    input: ''
+    input: '',
+    tokens: [],
+    errors: [],
   };
 }
 
