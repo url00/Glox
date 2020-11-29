@@ -39,19 +39,45 @@ const Circles = () => {
 }
 
 
-const AppContainer1 = styled.div`
+const AppContainer = styled.div`
 display: grid;
 grid-template: 1fr / 1fr 1fr;
 width: 100%;
 height: 100%;
 `
 
-const AppContainer2 = styled.div`
+const Outputs_ = styled.div`
 display: grid;
 grid-template: 1fr 1fr 1fr / 1fr;
 width: 100%;
 height: 100%;
 `;
+
+const Outputs = () => {
+  const [gs, ss] = useState(
+    <>
+      <ColoredRect color='Chocolate' />
+      <ColoredRect color='CornflowerBlue' />
+      <Print text={getAppState().input} />
+    </>
+  );
+  const lastState = getAppState().input;
+  useInterval(() => {
+    if (lastState === getAppState().input) {
+      return;
+    }
+    console.log('input diff detected, rerendering');
+    ss(
+      <>
+        <div id="tree-container"></div>
+        <ColoredRect color='#eeeeee' />
+        <Print text={getAppState().input} />
+      </>);
+  }, 500);
+  return <Outputs_>
+    {gs}
+  </Outputs_>
+}
 
 const ColoredRect = styled.div`
 position: relative;
@@ -61,7 +87,7 @@ height: 100%;
 z-index: 1;
 `;
 
-const InputTextbox_Style = styled.textarea`
+const InputTextbox_ = styled.textarea`
 font-family: monospace;
 font-size: 30pt;
 overflow-y: hidden;
@@ -72,6 +98,7 @@ padding: 0;
   resize: none;
   border: 0 none;
   outline: none;
+  overflow-x: auto;
   
 `
 
@@ -80,7 +107,7 @@ const InputTextbox = () => {
   useEffect(() => {
     setAppState({...getAppState(), input: gs});
   }, [gs]);
-  return <InputTextbox_Style value={gs} onChange={x => ss(x.target.value)} />
+  return <InputTextbox_ wrap="off" value={gs} onChange={x => ss(x.target.value)} />
 }
 
 function getDefaultAppState() {
@@ -100,25 +127,17 @@ function setAppState(x) {
   const a = window.localStorage.setItem('app', y);
 }
 
-const Output = () => {
-  const [gs, ss] = useState(getAppState().input);
-  useInterval(() => {
-    ss(getAppState().input);
-  }, 500);
-  return <div>{gs}</div>
+const Print = ({ text }) => {
+  return <div style={{backgroundColor: 'tomato'}}>{text}</div>
 }
 
 function App() {
   return (
     <>
-      <AppContainer1>
+      <AppContainer>
         <InputTextbox />
-        <AppContainer2>
-          <ColoredRect color='wheat' />
-          <ColoredRect color='#eeeeee' />
-          <Output />
-        </AppContainer2>
-      </AppContainer1>
+        <Outputs />
+      </AppContainer>
     </>
   );
 }

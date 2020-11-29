@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "d3-zoom": "^2.0.0"
+  }
+}
