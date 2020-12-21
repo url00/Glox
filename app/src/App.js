@@ -10,8 +10,7 @@ function p(x) {
 
 const AppContainer = styled.div`
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  grid-template: 1fr / 1fr 3fr;
   width: 100%;
   height: 100%;
 `;
@@ -129,7 +128,7 @@ const ColoredRect = styled.div`
 
 const InputTextbox_ = styled.input`
   font-family: monospace;
-  font-size: 30pt;
+  font-size: 8pt;
   overflow-y: hidden;
   background-color: ${(p) => (p.color ? p.color : "white")};
   width: 100%;
@@ -149,7 +148,7 @@ const ConsoleOutput_ = styled.div`
   display: flex;
   flex-direction: column;
   font-family: monospace;
-  font-size: 30pt;
+  font-size: 8pt;
   overflow-x: auto;
   overflow-y: scroll;
   color: white;
@@ -198,6 +197,11 @@ const ConsoleContainer = styled.div`
   height: 100vh;
 `;
 
+const ConsoleOutputLine = styled.pre`
+padding: 0;
+margin: 0;
+`;
+
 const ConsoleOutput = ({ outputs }) => {
   const r = useRef(null);
   useEffect(() => {
@@ -205,11 +209,11 @@ const ConsoleOutput = ({ outputs }) => {
       return;
     }
     r.current.scrollTop = r.current.scrollHeight;
-  }, [r, outputs])
+  }, [r, outputs]);
   return (
     <ConsoleOutput_ ref={r}>
       {outputs.map((x, i) => (
-        <div key={i}>{x}</div>
+        <ConsoleOutputLine key={i}>{x}</ConsoleOutputLine>
       ))}
     </ConsoleOutput_>
   );
@@ -222,7 +226,7 @@ class ConsoleInput extends React.Component {
   }
 
   componentDidMount() {
-    this.r.current.addEventListener('keyup', e => {
+    this.r.current.addEventListener("keyup", (e) => {
       if (e.keyCode !== 13) {
         return;
       }
@@ -230,14 +234,13 @@ class ConsoleInput extends React.Component {
       const c = this.r.current.value;
       this.props.onCommand(c);
       this.r.current.value = "";
-    })
+    });
   }
 
- render() {
-  return <InputTextbox ref={this.r} />;
- } 
-
-} 
+  render() {
+    return <InputTextbox ref={this.r} />;
+  }
+}
 
 class App extends React.Component {
   constructor() {
@@ -253,9 +256,18 @@ class App extends React.Component {
   }
 
   handleConsoleInputOnCommand = (c) => {
-    console.log(c);
     const o = [...this.state.consoleOutput];
     o.push(c);
+    if (false) {
+    } else if (c === "help") {
+      o.push(`usage: <command> [<args>]
+
+command can be one of:
+
+  lex    Work with lexer.
+  
+  help   Print this help text.`);
+    }
     this.setState({
       ...this.state,
       consoleOutput: o,
