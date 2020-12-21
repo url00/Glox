@@ -141,9 +141,9 @@ const InputTextbox_ = styled.input`
   overflow-x: auto;
 `;
 
-const InputTextbox = (props) => {
-  return <InputTextbox_ wrap="off" {...props} />;
-};
+const InputTextbox = React.forwardRef((props, ref) => {
+  return <InputTextbox_ wrap="off" ref={ref} {...props} />;
+});
 
 const ConsoleOutput_ = styled.div`
   display: flex;
@@ -199,8 +199,15 @@ const ConsoleContainer = styled.div`
 `;
 
 const ConsoleOutput = ({ outputs }) => {
+  const r = useRef(null);
+  useEffect(() => {
+    if (!r) {
+      return;
+    }
+    r.current.scrollTop = r.current.scrollHeight;
+  }, [r, outputs])
   return (
-    <ConsoleOutput_>
+    <ConsoleOutput_ ref={r}>
       {outputs.map((x, i) => (
         <div key={i}>{x}</div>
       ))}
@@ -208,13 +215,29 @@ const ConsoleOutput = ({ outputs }) => {
   );
 };
 
-const ConsoleInput = ({ onCommand = (command) => {} }) => {
-  const [gs, ss] = useState("");
-  useEffect(() => {
-    onCommand(gs);
-  }, [gs, ss]);
-  return <InputTextbox onChange={(e) => ss(e.target.value)} />;
-};
+class ConsoleInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.r = React.createRef();
+  }
+
+  componentDidMount() {
+    this.r.current.addEventListener('keyup', e => {
+      if (e.keyCode !== 13) {
+        return;
+      }
+      e.preventDefault();
+      const c = this.r.current.value;
+      this.props.onCommand(c);
+      this.r.current.value = "";
+    })
+  }
+
+ render() {
+  return <InputTextbox ref={this.r} />;
+ } 
+
+} 
 
 class App extends React.Component {
   constructor() {
