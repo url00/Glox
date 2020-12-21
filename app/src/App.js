@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import useInterval from "@use-it/interval";
 import * as d3 from "d3";
 import styled from "styled-components";
-import { lex } from "./lexer";
+import lexer from "./lexer";
+import produce from "immer";
 
 function p(x) {
   return JSON.stringify(x, null, 2);
@@ -10,7 +11,7 @@ function p(x) {
 
 const AppContainer = styled.div`
   display: grid;
-  grid-template: 1fr / 1fr 3fr;
+  grid-template: 1fr / 1fr 2fr;
   width: 100%;
   height: 100%;
 `;
@@ -198,8 +199,8 @@ const ConsoleContainer = styled.div`
 `;
 
 const ConsoleOutputLine = styled.pre`
-padding: 0;
-margin: 0;
+  padding: 0;
+  margin: 0;
 `;
 
 const ConsoleOutput = ({ outputs }) => {
@@ -226,6 +227,7 @@ class ConsoleInput extends React.Component {
   }
 
   componentDidMount() {
+    this.r.current.focus();
     this.r.current.addEventListener("keyup", (e) => {
       if (e.keyCode !== 13) {
         return;
@@ -242,6 +244,32 @@ class ConsoleInput extends React.Component {
   }
 }
 
+class Command {
+  constructor(c) {
+    this.r = c.split(" ");
+  }
+
+  pop() {
+    return this.r.shift();
+  }
+
+  read() {
+    return this.r.join(" ");
+  }
+
+  is(c) {
+    if (this.r.length <= 0) {
+      return false;
+    }
+
+    return this.r[0] === c;
+  }
+}
+
+const JsonDisplay = ({ thing, ...props }) => {
+  return <pre {...props}>{JSON.stringify(thing, null, 2)}</pre>
+}
+
 class App extends React.Component {
   constructor() {
     super();
@@ -252,26 +280,76 @@ class App extends React.Component {
       consoleInput: "",
       consoleOutput: [],
       fileInput: as.input,
+      lexerState: lexer.createState(),
+      display: null,
     };
   }
 
   handleConsoleInputOnCommand = (c) => {
-    const o = [...this.state.consoleOutput];
+    const o = [];
     o.push(c);
+    var command = new Command(c);
     if (false) {
-    } else if (c === "help") {
+    } else if (command.is('d')) {
+      command.pop();
+      if (false) {
+      } else if (command.is('j')) {
+        this.setState(produce(x => { x.display = <JsonDisplay thing={this.state} />; }));
+      } else {
+        o.push(`usage: d <subcommand> [<args>]
+
+subcommand can be one of:
+
+  j      Change display to a raw JSON view of the internal
+         state of the system.
+
+  i      Change display to a basic text input for Glox code.
+
+  l      Change display to a graphical overview of the
+         lexing process.
+  
+  help   Print this help text.`);
+      }
+    } else if (command.is("l")) {
+      command.pop();
+      if (false) {
+      } else if (command.is("reset")) {
+        this.setState(
+          produce((x) => {
+            x.lexerState = lexer.createState();
+          })
+        );
+      } else {
+        o.push(`usage: l <subcommand> [<args>]
+
+subcommand can be one of:
+
+  reset  Reset the internal state of the lexer.
+
+  step   Advance the lexer one step.
+
+  run    Run the lexer until completion.
+  
+  help   Print this help text.`);
+      }
+    } else {
       o.push(`usage: <command> [<args>]
 
 command can be one of:
 
-  lex    Work with lexer.
+  l      Work with lexer.
+
+  p      Work with parser.
+
+  d      Alter the display.
   
   help   Print this help text.`);
     }
-    this.setState({
-      ...this.state,
-      consoleOutput: o,
-    });
+    this.setState(
+      produce((x) => {
+        x.consoleOutput = x.consoleOutput.concat(o);
+      })
+    );
   };
 
   render() {
@@ -281,7 +359,7 @@ command can be one of:
           <ConsoleOutput outputs={this.state.consoleOutput} />
           <ConsoleInput onCommand={this.handleConsoleInputOnCommand} />
         </ConsoleContainer>
-        <InputTextbox color="aliceblue" />
+        {this.state.display}
       </AppContainer>
     );
   }

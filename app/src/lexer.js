@@ -9,7 +9,7 @@ function createToken(type, lexeme, literal, line) {
   };
 }
 
-function createLexerState() {
+function createState() {
   return {
     source: "",
     tokens: [],
@@ -26,7 +26,7 @@ function advance(ls) {
   ls.currentChar = ls.source.charAt(ls.currentPos);
 }
 
-function scanForTokens(ls) {
+function scan(ls) {
   let i = 0;
   do {
     i++;
@@ -52,8 +52,8 @@ function scanForTokens(ls) {
   ls.tokens.push(createToken(tokenTypes.EOF, "", null, ls.lineNum));
 }
 
-export function lex(source) {
-    const ls = createLexerState();
-    scanForTokens(ls);
-    return ls;
-}
+export default {
+  createToken,
+  createState,
+  scan
+};
