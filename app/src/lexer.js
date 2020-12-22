@@ -9,9 +9,9 @@ function createToken(type, lexeme, literal, line) {
   };
 }
 
-function createState() {
-  return {
-    source: "",
+function createState(source) {
+  const ls = {
+    source,
     tokens: [],
     startPos: 0,
     currentPos: 0,
@@ -19,6 +19,8 @@ function createState() {
     currentChar: null,
     nextChar: null,
   };
+  ls.currentChar = ls.source.charAt(ls.currentPos);
+  return ls;
 }
 
 function advance(ls) {

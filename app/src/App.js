@@ -191,6 +191,14 @@ const Print = ({ text }) => {
   return <div style={{ backgroundColor: "tomato" }}>{text}</div>;
 };
 
+const DisplayContainer = styled.div`
+  display: grid;
+  grid-auto-flow: row;
+  grid-auto-rows: 1fr;
+  width: 100%;
+  height: 100vh;
+`;
+
 const ConsoleContainer = styled.div`
   display: grid;
   grid-template: 1fr auto / 1fr;
@@ -266,9 +274,45 @@ class Command {
   }
 }
 
-const JsonDisplay = ({ thing, ...props }) => {
-  return <pre {...props}>{JSON.stringify(thing, null, 2)}</pre>
+/* const InputTextbox = ({storageKey, ...props}) => {
+  const is = getAppState()[storageKey];
+  const [gs, ss] = useState(is);
+  useEffect(() => {
+    const ns = {...getAppState()};
+    ns[storageKey] = gs;
+    setAppState(ns);
+  }, [gs]);
+  return <InputTextbox_ wrap="off" {...props} value={gs} onChange={x => ss(x.target.value)} />
+} */
+
+class SourceInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.r = React.createRef();
+  }
+
+  componentDidMount() {
+    this.r.current.addEventListener("change", (e) => console.log(e));
+  }
+
+  render() {
+    return (
+      <div>
+        <InputTextbox ref={this.r} {...this.props} />
+      </div>
+    );
+  }
 }
+
+const JsonDisplay_ = styled.pre`
+  margin: 0;
+  overflow-x: auto;
+`;
+const JsonDisplay = ({ thing, ...props }) => {
+  return (
+    <JsonDisplay_ {...props}>{JSON.stringify(thing, null, 2)}</JsonDisplay_>
+  );
+};
 
 class App extends React.Component {
   constructor() {
@@ -280,7 +324,7 @@ class App extends React.Component {
       consoleInput: "",
       consoleOutput: [],
       fileInput: as.input,
-      lexerState: lexer.createState(),
+      lexerState: lexer.createState(as.input),
       display: null,
     };
   }
@@ -290,11 +334,15 @@ class App extends React.Component {
     o.push(c);
     var command = new Command(c);
     if (false) {
-    } else if (command.is('d')) {
+    } else if (command.is("d")) {
       command.pop();
       if (false) {
-      } else if (command.is('j')) {
-        this.setState(produce(x => { x.display = <JsonDisplay thing={this.state} />; }));
+      } else if (command.is("j")) {
+        this.setState(
+          produce((x) => {
+            x.display = <JsonDisplay thing={this.state} />;
+          })
+        );
       } else {
         o.push(`usage: d <subcommand> [<args>]
 
@@ -314,9 +362,10 @@ subcommand can be one of:
       command.pop();
       if (false) {
       } else if (command.is("reset")) {
+        const as = getAppState();
         this.setState(
           produce((x) => {
-            x.lexerState = lexer.createState();
+            x.lexerState = lexer.createState(as.input);
           })
         );
       } else {
@@ -359,7 +408,10 @@ command can be one of:
           <ConsoleOutput outputs={this.state.consoleOutput} />
           <ConsoleInput onCommand={this.handleConsoleInputOnCommand} />
         </ConsoleContainer>
-        {this.state.display}
+        <DisplayContainer>
+          <SourceInput />
+          {this.state.display}
+        </DisplayContainer>
       </AppContainer>
     );
   }
