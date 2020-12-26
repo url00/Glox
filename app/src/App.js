@@ -4,10 +4,7 @@ import * as d3 from "d3";
 import styled from "styled-components";
 import lexer from "./lexer";
 import produce from "immer";
-
-function copy(x) {
-  return JSON.parse(JSON.stringify(x));
-}
+import { copy } from "./util";
 
 const AppContainer = styled.div`
   display: grid;
@@ -230,7 +227,7 @@ class App extends React.Component {
           produce((x) => {
             const as = getAppState();
             x.fileInput = as.input;
-            x.display = this.state.displayGenerator();
+            x.display = this.state.displayGenerator(this.state);
           })
         );
       } else if (command.is("reset")) {
@@ -250,7 +247,9 @@ subcommand can be one of:
       if (false) {
       } else if (command.is("j")) {
         const dg = (state) => {
-          const reactState = produce(this.state, x => {
+          const reactState = produce(state, x => {
+            delete x['consoleInput'];
+            delete x['consoleOutput'];
             delete x['display'];
           });
           const thing = {
@@ -262,7 +261,7 @@ subcommand can be one of:
         this.setState(
           produce((x) => {
             x.displayGenerator = dg
-            x.display = dg()
+            x.display = dg(this.state)
           })
         );
       } else {
@@ -283,11 +282,21 @@ subcommand can be one of:
     } else if (command.is("l")) {
       command.pop();
       if (false) {
+      } else if (command.is("s")) {
+        const s = copy(this.state.lexerState);
+        const ns = lexer.step(s);
+        this.setState(
+          produce((x) => {
+            x.lexerState = ns;
+            x.display = this.state.displayGenerator(this.state);
+          })
+        );
       } else if (command.is("reset")) {
         const as = getAppState();
         this.setState(
           produce((x) => {
             x.lexerState = lexer.createState(as.input);
+            x.display = this.state.displayGenerator(this.state);
           })
         );
       } else {
@@ -297,7 +306,7 @@ subcommand can be one of:
 
   reset  Reset the internal state of the lexer.
 
-  step   Advance the lexer one step.
+  s      Advance the lexer one step.
 
   run    Run the lexer until completion.
   
@@ -321,7 +330,7 @@ command can be one of:
     this.setState(
       produce((x) => {
         x.consoleOutput = x.consoleOutput.concat(o);
-        x.display = this.state.displayGenerator();
+        x.display = this.state.displayGenerator(this.state);
       })
     );
   };
