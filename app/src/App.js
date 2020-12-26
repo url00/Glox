@@ -48,6 +48,7 @@ const ConsoleOutput_ = styled.div`
 function getDefaultAppState() {
   return {
     input: "",
+    display: null,
   };
 }
 
@@ -59,12 +60,8 @@ function getAppState() {
 
 function setAppState(x) {
   const y = JSON.stringify(x);
-  const a = window.localStorage.setItem("app", y);
+  window.localStorage.setItem("app", y);
 }
-
-const Print = ({ text }) => {
-  return <div style={{ backgroundColor: "tomato" }}>{text}</div>;
-};
 
 const DisplayContainer = styled.div`
   display: grid;
@@ -204,14 +201,35 @@ class App extends React.Component {
     super();
 
     const as = getAppState();
-    this.state = {
+    let dg = (state) => { return null };
+    if (false) {
+    } else if (as.display === "JsonDisplay") {
+      dg = this.createJsonDisplayGenerator();
+    }
+    const ns = {
       consoleInput: "",
       consoleOutput: [],
       fileInput: as.input,
       lexerState: lexer.createState(as.input),
-      display: null,
-      displayGenerator: (state) => { return null }
+      displayGenerator: dg
     };
+    ns.display = dg(ns);
+    this.state = ns;
+  }
+
+  createJsonDisplayGenerator = () => {
+    return ((state) => {
+      const reactState = produce(state, x => {
+        delete x['consoleInput'];
+        delete x['consoleOutput'];
+        delete x['display'];
+      });
+      const thing = {
+        appState: getAppState(),
+        reactState
+      };
+      return <JsonDisplay thing={thing} />;
+    });
   }
 
   handleConsoleInputOnCommand = (c) => {
@@ -246,24 +264,16 @@ subcommand can be one of:
       command.pop();
       if (false) {
       } else if (command.is("j")) {
-        const dg = (state) => {
-          const reactState = produce(state, x => {
-            delete x['consoleInput'];
-            delete x['consoleOutput'];
-            delete x['display'];
-          });
-          const thing = {
-            appState: getAppState(),
-            reactState
-          };
-          return <JsonDisplay thing={thing} />;
-        }
+        const dg = this.createJsonDisplayGenerator();
         this.setState(
           produce((x) => {
-            x.displayGenerator = dg
-            x.display = dg(this.state)
+            x.displayGenerator = dg;
+            x.display = dg(this.state);
           })
         );
+        const as = getAppState();
+        as.display = "JsonDisplay";
+        setAppState(as);
       } else {
         o.push(`usage: d <subcommand> [<args>]
 
