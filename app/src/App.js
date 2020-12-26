@@ -173,7 +173,12 @@ class SourceInput extends React.Component {
   }
 
   componentDidMount() {
-    this.r.current.addEventListener("change", (e) => console.log(e));
+    this.r.current.value = getAppState().input;
+    this.r.current.addEventListener("change", (e) => {
+      const as = getAppState();
+      as.input = this.r.current.value;
+      setAppState(as);
+    });
   }
 
   render() {
@@ -198,7 +203,6 @@ class App extends React.Component {
     super();
 
     const as = getAppState();
-
     this.state = {
       consoleInput: "",
       consoleOutput: [],
@@ -213,13 +217,39 @@ class App extends React.Component {
     o.push(c);
     var command = new Command(c);
     if (false) {
+    } else if (command.is("s")) {
+      command.pop();
+      if (false) {
+      } else if (command.is("l")) {
+        this.setState(
+          produce((x) => {
+            const as = getAppState();
+            x.fileInput = as.input;
+          })
+        );
+      } else if (command.is("reset")) {
+      } else {
+        o.push(`usage: s <subcommand> [<args>]
+
+subcommand can be one of:
+
+  l      Load the current input file.
+
+  reset  Reset the internal state.
+
+  help   Print this help text.`);
+      }
     } else if (command.is("d")) {
       command.pop();
       if (false) {
       } else if (command.is("j")) {
         this.setState(
           produce((x) => {
-            x.display = <JsonDisplay thing={this.state} />;
+            const thing = {
+              appState: getAppState(),
+              reactState: this.state
+            };
+            x.display = <JsonDisplay thing={thing} />;
           })
         );
       } else {
@@ -270,6 +300,8 @@ command can be one of:
   p      Work with parser.
 
   d      Alter the display.
+
+  s      Work with internal state.
   
   help   Print this help text.`);
     }
