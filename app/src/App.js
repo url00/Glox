@@ -5,6 +5,10 @@ import styled from "styled-components";
 import lexer from "./lexer";
 import produce from "immer";
 
+function copy(x) {
+  return JSON.parse(JSON.stringify(x));
+}
+
 const AppContainer = styled.div`
   display: grid;
   grid-template: 1fr / 1fr 2fr;
@@ -209,6 +213,7 @@ class App extends React.Component {
       fileInput: as.input,
       lexerState: lexer.createState(as.input),
       display: null,
+      displayGenerator: (state) => { return null }
     };
   }
 
@@ -225,6 +230,7 @@ class App extends React.Component {
           produce((x) => {
             const as = getAppState();
             x.fileInput = as.input;
+            x.display = this.state.displayGenerator();
           })
         );
       } else if (command.is("reset")) {
@@ -243,13 +249,20 @@ subcommand can be one of:
       command.pop();
       if (false) {
       } else if (command.is("j")) {
+        const dg = (state) => {
+          const reactState = produce(this.state, x => {
+            delete x['display'];
+          });
+          const thing = {
+            appState: getAppState(),
+            reactState
+          };
+          return <JsonDisplay thing={thing} />;
+        }
         this.setState(
           produce((x) => {
-            const thing = {
-              appState: getAppState(),
-              reactState: this.state
-            };
-            x.display = <JsonDisplay thing={thing} />;
+            x.displayGenerator = dg
+            x.display = dg()
           })
         );
       } else {
@@ -308,6 +321,7 @@ command can be one of:
     this.setState(
       produce((x) => {
         x.consoleOutput = x.consoleOutput.concat(o);
+        x.display = this.state.displayGenerator();
       })
     );
   };
