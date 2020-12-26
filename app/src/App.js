@@ -5,124 +5,9 @@ import styled from "styled-components";
 import lexer from "./lexer";
 import produce from "immer";
 
-function p(x) {
-  return JSON.stringify(x, null, 2);
-}
-
 const AppContainer = styled.div`
   display: grid;
   grid-template: 1fr / 1fr 2fr;
-  width: 100%;
-  height: 100%;
-`;
-
-/* const Outputs_ = styled.div`
-display: grid;
-grid-template: repeat(3, minmax(0, 1fr)) auto / 1fr;
-width: 100%;
-height: 100%;
-`; */
-
-/* const LexerTextOutputContainer_ = styled.div`
-height: 100%;
-width: 100%;
-background-color: wheat;
-overflow-y: scroll;
-min-height: 0;
-`;
-const LexerTextOutput_ = styled.pre`
-background-color: transparent;
-height: 0;
-margin: 0;
-padding: 0;
-`; */
-
-/* const OutputsControls_ = styled.div`
-display: flex;
-width: 100%;
-`;
-
-const Button_ = styled.div`
-margin: 0.5rem;
-padding: 0.5rem;
-background-color: #aaaaff;
-`; */
-
-// class Outputs extends React.Component {
-//   constructor() {
-//     super();
-//     const appS = getAppState();
-//     const lexerS = createLexerState();
-//     lexerS.source = appS.input;
-//     this.state = {
-//       lastAppState: appS,
-//       lexerOutput: null,
-//       lexerState: lexerS
-//     };
-//   }
-
-//   componentDidMount() {
-//     this.setState({
-//       ...this.state,
-//     });
-//   }
-
-//   checkAndUpdateLexerState(s) {
-//     const appS = getAppState();
-//     if (this.state.lastAppState.input === appS.input) {
-//       return;
-//     }
-//     console.log('new app state detected, invalidating output');
-//     const lexerS = createLexerState();
-//     lexerS.source = appS.input;
-//     s.lastAppState = appS;
-//     s.lexerOutput = null;
-//     s.lexerState = lexerS;
-//   }
-
-//   handleStepLexerClick = () => {
-//     console.log("stepping lexer");
-//     let s = this.state;
-//     this.checkAndUpdateLexerState(s);
-//     step(s.lexerState);
-//     tryAddToken(s.lexerState);
-//     let o = p(s.lexerState);
-//     this.setState({
-//       ...s,
-//       lexerOutput: o,
-//     });
-//   }
-
-//   handleRunClick = () => {
-//     console.log("running");
-//     let s = this.state;
-//     this.checkAndUpdateLexerState(s);
-//     step(s.lexerState);
-//     tryAddToken(s.lexerState);
-//     let o = p(s.lexerState);
-//     this.setState({
-//       ...s,
-//       lexerOutput: o,
-//     });
-//   }
-
-//   render() {
-//     return (<Outputs_>
-//       <LexerTextOutputContainer_>
-//         <LexerTextOutput_>{this.state.lexerOutput}</LexerTextOutput_>
-//       </LexerTextOutputContainer_>
-//       <ColoredRect color='#eeeeee' />
-//       <Print text={this.state.lastAppState.input} />
-//       <OutputsControls_>
-//         <Button_ onClick={this.handleStepLexerClick}>Step Lexer</Button_>
-//         <Button_ onClick={this.handleRunClick}>Run</Button_>
-//       </OutputsControls_>
-//     </Outputs_>)
-//   }
-// }
-
-const ColoredRect = styled.div`
-  background-color: ${(props) => (props.color ? props.color : "#ee0000")};
   width: 100%;
   height: 100%;
 `;
@@ -158,17 +43,6 @@ const ConsoleOutput_ = styled.div`
   height: 100%;
   padding: 0;
 `;
-
-/* const InputTextbox = ({storageKey, ...props}) => {
-  const is = getAppState()[storageKey];
-  const [gs, ss] = useState(is);
-  useEffect(() => {
-    const ns = {...getAppState()};
-    ns[storageKey] = gs;
-    setAppState(ns);
-  }, [gs]);
-  return <InputTextbox_ wrap="off" {...props} value={gs} onChange={x => ss(x.target.value)} />
-} */
 
 function getDefaultAppState() {
   return {
@@ -274,16 +148,23 @@ class Command {
   }
 }
 
-/* const InputTextbox = ({storageKey, ...props}) => {
-  const is = getAppState()[storageKey];
-  const [gs, ss] = useState(is);
-  useEffect(() => {
-    const ns = {...getAppState()};
-    ns[storageKey] = gs;
-    setAppState(ns);
-  }, [gs]);
-  return <InputTextbox_ wrap="off" {...props} value={gs} onChange={x => ss(x.target.value)} />
-} */
+const InputTextArea_ = styled.textarea`
+font-family: monospace;
+font-size: 8pt;
+overflow-y: hidden;
+background-color: aliceblue;
+width: 100%;
+height: 100%;
+padding: 0;
+resize: none;
+border: 0 none;
+outline: none;
+overflow-x: auto;
+`;
+
+const InputTextArea = React.forwardRef((props, ref) => {
+  return <InputTextArea_ ref={ref} {...props} wrap="off"/>
+});
 
 class SourceInput extends React.Component {
   constructor(props) {
@@ -297,9 +178,7 @@ class SourceInput extends React.Component {
 
   render() {
     return (
-      <div>
-        <InputTextbox ref={this.r} {...this.props} />
-      </div>
+      <InputTextArea ref={this.r} {...this.props} />
     );
   }
 }
