@@ -199,7 +199,6 @@ const JsonDisplay = ({ thing, ...props }) => {
 class App extends React.Component {
   constructor() {
     super();
-
     const as = getAppState();
     let dg = (state) => { return null };
     if (false) {
@@ -209,7 +208,6 @@ class App extends React.Component {
     const ns = {
       consoleInput: "",
       consoleOutput: [],
-      fileInput: as.input,
       lexerState: lexer.createState(as.input),
       displayGenerator: dg
     };
@@ -244,7 +242,6 @@ class App extends React.Component {
         this.setState(
           produce((x) => {
             const as = getAppState();
-            x.fileInput = as.input;
             x.display = this.state.displayGenerator(this.state);
           })
         );
