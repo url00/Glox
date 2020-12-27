@@ -1,14 +1,14 @@
 import { tokenTypes } from "./tokenTypes";
 import { copy } from "./util";
 
-function createToken(type, lexeme, literalValue, line, startPos, endPos) {
+function createToken() {
   return {
-    type,
-    lexeme,
-    literalValue,
-    line,
-    startPos,
-    endPos,
+    type: null,
+    lexeme: null,
+    literalValue: null,
+    line: null,
+    startPos: null,
+    endPos: null,
   };
 }
 
@@ -24,76 +24,96 @@ function charAt(s, pos) {
   return "";
 }
 
+function substr(s, start, end) {
+  start = Math.min(Math.max(0, start), s.length);
+  end = Math.max(Math.min(s.length, end), 0);
+  return s.substr(start, end);
+}
+
 function createState(source) {
   const ls = {
     source,
     errors: [],
-    lastToken: null,
+    wipToken: createToken(),
     tokens: [],
     startPos: 0,
     currentPos: 0,
     lineNum: 1,
-    currentChar0: null,
-    currentChar1: null,
-    segment: null,
+    currentChar: null,
+    state: "scanning"
   };
-  ls.currentChar0 = charAt(ls.source, ls.currentPos);
-  ls.currentChar1 = charAt(ls.source, ls.currentPos + 1);
-  ls.segment = "" + ls.currentChar0;
+  ls.wipToken.startPos = 0;
+  refresh(ls);
   return ls;
 }
 
-function step(state) {
-  checkForToken(state);
-  advance(state);
-  return state;
-}
-
-function addNewToken(ls, tokenType, tokenValue = null) {
-    ls.startPos = ls.currentPos;
-    ls.lastToken = createToken(tokenType, ls.segment, tokenValue, ls.lineNum, ls.startPos, ls.currentPos);
-    ls.tokens.push(ls.lastToken);
-    ls.segment = "";
-}
-
-function checkForToken(ls) {
-  if (false){
-  } else if (ls.segment === null) {
-    ls.errors.push({m: "attempted to check for token in a null segment", s: copy(ls)});
-  } else if (ls.segment === "(") {
-    addNewToken(ls, tokenTypes.LEFT_PAREN);
-  } else if (ls.segment === ")") {
-    addNewToken(ls, tokenTypes.RIGHT_PAREN);
-  } else if (ls.segment === "{") {
-    addNewToken(ls, tokenTypes.LEFT_BRACE);
-  } else if (ls.segment === "}") {
-    addNewToken(ls, tokenTypes.RIGHT_BRACE);
-  } else if (ls.segment === ",") {
-    addNewToken(ls, tokenTypes.COMMA);
-  } else if (ls.segment === ".") {
-    addNewToken(ls, tokenTypes.DOT);
-  } else if (ls.segment === "-") {
-    addNewToken(ls, tokenTypes.MINUS);
-  } else if (ls.segment === "+") {
-    addNewToken(ls, tokenTypes.PLUS);
-  } else if (ls.segment === ";") {
-    addNewToken(ls, tokenTypes.SEMICOLON);
-  } else if (ls.segment === "*") {
-    addNewToken(ls, tokenTypes.STAR);
-  } else if(ls.segment === "!") {
-    if (ls.currentChar1 === "=") {
-      addNewToken(ls, tokenTypes.BANG_EQUAL);
+function step(ls) {
+  if (false) {
+  } else if (ls.state === "scanning") {
+    if (false){
+    } else if (ls.currentChar === "(") {
+      ls.wipToken.type = tokenTypes.LEFT_PAREN;
+      ls.state = "token found";
+    } else if (ls.currentChar === ")") {
+      ls.wipToken.type = tokenTypes.RIGHT_PAREN;
+      ls.state = "token found";
+    } else if (ls.currentChar === "{") {
+      ls.wipToken.type = tokenTypes.LEFT_BRACE;
+      ls.state = "token found";
+    } else if (ls.currentChar === "}") {
+      ls.wipToken.type = tokenTypes.RIGHT_BRACE;
+      ls.state = "token found";
+    } else if (ls.currentChar === ",") {
+      ls.wipToken.type = tokenTypes.COMMA;
+      ls.state = "token found";
+    } else if (ls.currentChar === ".") {
+      ls.wipToken.type = tokenTypes.DOT;
+      ls.state = "token found";
+    } else if (ls.currentChar === "-") {
+      ls.wipToken.type = tokenTypes.MINUS;
+      ls.state = "token found";
+    } else if (ls.currentChar === "+") {
+      ls.wipToken.type = tokenTypes.PLUS;
+      ls.state = "token found";
+    } else if (ls.currentChar === ";") {
+      ls.wipToken.type = tokenTypes.SEMICOLON;
+      ls.state = "token found";
+    } else if (ls.currentChar === "*") {
+      ls.wipToken.type = tokenTypes.STAR;
+      ls.state = "token found";
+    } else if(ls.currentChar === "!") {
+      ls.wipToken.lexeme = ls.currentChar;
+      ls.wipToken.type = tokenTypes.BANG;
+      ls.state = "possible multichar token found";
     } else {
-      addNewToken(ls, tokenTypes.BANG);
+    }
+    ls.currentPos++;
+  } else if (ls.state === "token found") {
+    ls.wipToken.endPos = ls.currentPos - 1;
+    ls.tokens.push(ls.wipToken);
+    //ls.currentPos++;
+    ls.startPos = ls.currentPos;
+    ls.wipToken = createToken();
+    ls.wipToken.startPos = ls.startPos;
+    ls.state = "scanning";
+  } else if (ls.state == "possible multichar token found") {
+    if (ls.wipToken.lexeme === "!") {
+      if (ls.currentChar === "=") {
+        ls.currentPos++;
+        ls.state = "token found";
+        ls.wipToken.type = tokenTypes.BANG_EQUAL;
+        ls.wipToken.lexeme = "!=";
+      } else {
+        ls.state = "token found";
+      }
     }
   }
+  refresh(ls);
+  return ls;
 }
 
-function advance(ls) {
-  ls.currentPos++;
-  ls.currentChar0 = charAt(ls.source, ls.currentPos);
-  ls.currentChar1 = charAt(ls.source, ls.currentPos + 1);
-  ls.segment = "" + ls.currentChar0;
+function refresh(ls) {
+  ls.currentChar = charAt(ls.source, ls.currentPos);
 }
 
 function scan(ls) {

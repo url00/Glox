@@ -55,6 +55,10 @@ function getDefaultAppState() {
 function getAppState() {
   const a = window.localStorage.getItem("app");
   const b = a ? JSON.parse(a) : getDefaultAppState();
+  if (!b.input) {
+    b.input = "";
+    setAppState(b);
+  }
   return b;
 }
 
@@ -241,7 +245,6 @@ class App extends React.Component {
       } else if (command.is("l")) {
         this.setState(
           produce((x) => {
-            const as = getAppState();
             x.display = this.state.displayGenerator(this.state);
           })
         );
@@ -298,7 +301,7 @@ subcommand can be one of:
             x.display = this.state.displayGenerator(this.state);
           })
         );
-      } else if (command.is("reset")) {
+      } else if (command.is("r")) {
         const as = getAppState();
         this.setState(
           produce((x) => {
@@ -311,7 +314,7 @@ subcommand can be one of:
 
 subcommand can be one of:
 
-  reset  Reset the internal state of the lexer.
+  r      Reset the internal state of the lexer.
 
   s      Advance the lexer one step.
 
