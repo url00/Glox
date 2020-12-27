@@ -89,6 +89,11 @@ function step(ls) {
       ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.SLASH;
       ls.state = "possible multichar token found";
+    } else if(ls.currentChar === "\"") {
+      ls.wipToken.lexeme = ls.currentChar;
+      ls.wipToken.type = tokenTypes.STRING;
+      ls.wipToken.literalValue = "";
+      ls.state = "string found";
     } else {
     }
     ls.currentPos++;
@@ -116,13 +121,13 @@ function step(ls) {
       if (ls.currentChar === "/") {
         ls.currentPos++;
         refresh(ls);
-        ls.state = "comment";
+        ls.state = "comment found";
         ls.wipToken = null;
       } else {
         ls.state = "token found";
       }
     }
-  } else if (ls.state == "comment") {
+  } else if (ls.state == "comment found") {
     ls.currentPos++;
     refresh(ls);
     if (ls.currentChar == "\n") {
@@ -130,6 +135,16 @@ function step(ls) {
       ls.startPos = ls.currentPos;
       ls.wipToken.startPos = ls.startPos;
       ls.state = "scanning";
+    }
+  } else if (ls.state == "string found") {
+    if (ls.currentChar == "\"") {
+      ls.state = "token found";
+      ls.currentPos++;
+      refresh(ls);
+    } else {
+      ls.wipToken.literalValue += ls.currentChar;
+      ls.currentPos++;
+      refresh(ls);
     }
   }
 }

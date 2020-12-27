@@ -294,10 +294,10 @@ subcommand can be one of:
       if (false) {
       } else if (command.is("s")) {
         const s = copy(this.state.lexerState);
-        const ns = lexer.step(s);
+        lexer.step(s);
         this.setState(
           produce((x) => {
-            x.lexerState = ns;
+            x.lexerState = s;
             x.display = this.state.displayGenerator(this.state);
           })
         );
