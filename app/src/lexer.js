@@ -92,6 +92,7 @@ function step(ls) {
     } else {
     }
     ls.currentPos++;
+    refresh(ls);
   } else if (ls.state === "token found") {
     ls.wipToken.endPos = ls.currentPos - 1;
     ls.tokens.push(ls.wipToken);
@@ -100,32 +101,37 @@ function step(ls) {
     ls.wipToken.startPos = ls.startPos;
     ls.state = "scanning";
   } else if (ls.state == "possible multichar token found") {
-    ls.currentPos++;
     if(false) {
     } else if (ls.wipToken.type === tokenTypes.BANG) {
       if (ls.currentChar === "=") {
         ls.currentPos++;
+        refresh(ls);
         ls.state = "token found";
         ls.wipToken.type = tokenTypes.BANG_EQUAL;
         ls.wipToken.lexeme = "!=";
       } else {
-        ls.currentPos--;
         ls.state = "token found";
       }
     } else if (ls.wipToken.type === tokenTypes.SLASH) {
       if (ls.currentChar === "/") {
         ls.currentPos++;
-        ls.state = "token found";
-        ls.wipToken.type = tokenTypes.COMMENT_START;
-        ls.wipToken.lexeme = "!=";
+        refresh(ls);
+        ls.state = "comment";
+        ls.wipToken = null;
       } else {
-        ls.currentPos--;
         ls.state = "token found";
       }
     }
+  } else if (ls.state == "comment") {
+    ls.currentPos++;
+    refresh(ls);
+    if (ls.currentChar == "\n") {
+      ls.wipToken = createToken();
+      ls.startPos = ls.currentPos;
+      ls.wipToken.startPos = ls.startPos;
+      ls.state = "scanning";
+    }
   }
-  refresh(ls);
-  return ls;
 }
 
 function refresh(ls) {
@@ -133,6 +139,9 @@ function refresh(ls) {
 }
 
 function scan(ls) {
+  while (ls.currentPos < ls.source.length) {
+    step(ls);
+  }
 }
 
 export default {

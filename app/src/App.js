@@ -301,6 +301,15 @@ subcommand can be one of:
             x.display = this.state.displayGenerator(this.state);
           })
         );
+      } else if (command.is("run")) {
+        const s = copy(this.state.lexerState);
+        lexer.scan(s);
+        this.setState(
+          produce((x) => {
+            x.lexerState = s;
+            x.display = this.state.displayGenerator(this.state);
+          })
+        );
       } else if (command.is("r")) {
         const as = getAppState();
         this.setState(
