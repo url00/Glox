@@ -92,6 +92,18 @@ function step(ls) {
       ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.BANG;
       ls.state = "possible multichar token found";
+    } else if(ls.currentChar === "=") {
+      ls.wipToken.lexeme = ls.currentChar;
+      ls.wipToken.type = tokenTypes.EQUAL;
+      ls.state = "possible multichar token found";
+    } else if(ls.currentChar === "<") {
+      ls.wipToken.lexeme = ls.currentChar;
+      ls.wipToken.type = tokenTypes.LESS;
+      ls.state = "possible multichar token found";
+    } else if(ls.currentChar === ">") {
+      ls.wipToken.lexeme = ls.currentChar;
+      ls.wipToken.type = tokenTypes.GREATER;
+      ls.state = "possible multichar token found";
     } else if(ls.currentChar === "/") {
       ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.SLASH;
@@ -129,6 +141,36 @@ function step(ls) {
         ls.state = "token found";
         ls.wipToken.type = tokenTypes.BANG_EQUAL;
         ls.wipToken.lexeme = "!=";
+      } else {
+        ls.state = "token found";
+      }
+    } else if (ls.wipToken.type === tokenTypes.EQUAL) {
+      if (ls.currentChar === "=") {
+        ls.currentPos++;
+        refresh(ls);
+        ls.state = "token found";
+        ls.wipToken.type = tokenTypes.EQUAL_EQUAL;
+        ls.wipToken.lexeme = "==";
+      } else {
+        ls.state = "token found";
+      }
+    } else if (ls.wipToken.type === tokenTypes.LESS) {
+      if (ls.currentChar === "=") {
+        ls.currentPos++;
+        refresh(ls);
+        ls.state = "token found";
+        ls.wipToken.type = tokenTypes.LESS_EQUAL;
+        ls.wipToken.lexeme = "<=";
+      } else {
+        ls.state = "token found";
+      }
+    } else if (ls.wipToken.type === tokenTypes.GREATER) {
+      if (ls.currentChar === "=") {
+        ls.currentPos++;
+        refresh(ls);
+        ls.state = "token found";
+        ls.wipToken.type = tokenTypes.GREATER_EQUAL;
+        ls.wipToken.lexeme = ">=";
       } else {
         ls.state = "token found";
       }
