@@ -116,10 +116,12 @@ function step(ls) {
       ls.wipToken.type = tokenTypes.NUMBER;
       ls.wipToken.literalValue = ls.currentChar;
       ls.state = "number found";
-    } else if (ls.currentChar === " ") {
+    } else if (ls.currentChar === " " || ls.currentChar === "\t") {
       // whitespace
     } else if (ls.currentChar === "") {
       // eof
+    } else if (ls.currentChar === "\n") {
+      ls.lineNum++;
     } else {
       ls.errors.push("unexpected character: \"" + ls.currentChar + `" (${ls.currentChar.charCodeAt()})`);
     }
@@ -127,6 +129,7 @@ function step(ls) {
     refresh(ls);
   } else if (ls.state === "token found") {
     ls.wipToken.endPos = ls.currentPos - 1;
+    ls.wipToken.line = ls.lineNum;
     ls.tokens.push(ls.wipToken);
     ls.startPos = ls.currentPos;
     ls.wipToken = createToken();
