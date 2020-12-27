@@ -104,7 +104,12 @@ function step(ls) {
       ls.wipToken.type = tokenTypes.NUMBER;
       ls.wipToken.literalValue = ls.currentChar;
       ls.state = "number found";
+    } else if (ls.currentChar === " ") {
+      // whitespace
+    } else if (ls.currentChar === "") {
+      // eof
     } else {
+      ls.errors.push("unexpected character: \"" + ls.currentChar + `" (${ls.currentChar.charCodeAt()})`);
     }
     ls.currentPos++;
     refresh(ls);
@@ -157,7 +162,7 @@ function step(ls) {
       refresh(ls);
     }
   } else if (ls.state == "number found") {
-    if (isDigit(ls.currentChar) == false) {
+    if (isDigit(ls.currentChar) == false && ls.currentChar !== ".") {
       ls.state = "token found";
       ls.currentPos++;
       refresh(ls);
