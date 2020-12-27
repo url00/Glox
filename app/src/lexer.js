@@ -47,6 +47,13 @@ function createState(source) {
   return ls;
 }
 
+function isDigit(c) {
+  const x = c.charCodeAt();
+  const a = "0".charCodeAt();
+  const b = "9".charCodeAt();
+  return x >= a && x <= b;
+}
+
 function step(ls) {
   if (false) {
   } else if (ls.state === "scanning") {
@@ -90,10 +97,13 @@ function step(ls) {
       ls.wipToken.type = tokenTypes.SLASH;
       ls.state = "possible multichar token found";
     } else if(ls.currentChar === "\"") {
-      ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.STRING;
       ls.wipToken.literalValue = "";
       ls.state = "string found";
+    } else if(isDigit(ls.currentChar)) {
+      ls.wipToken.type = tokenTypes.NUMBER;
+      ls.wipToken.literalValue = ls.currentChar;
+      ls.state = "number found";
     } else {
     }
     ls.currentPos++;
@@ -146,6 +156,16 @@ function step(ls) {
       ls.currentPos++;
       refresh(ls);
     }
+  } else if (ls.state == "number found") {
+    if (isDigit(ls.currentChar) == false) {
+      ls.state = "token found";
+      ls.currentPos++;
+      refresh(ls);
+    } else {
+      ls.wipToken.literalValue += ls.currentChar;
+      ls.currentPos++;
+      refresh(ls);
+    }
   }
 }
 
@@ -154,7 +174,7 @@ function refresh(ls) {
 }
 
 function scan(ls) {
-  while (ls.currentPos < ls.source.length) {
+  while (ls.currentPos - 1 < ls.source.length) {
     step(ls);
   }
 }
