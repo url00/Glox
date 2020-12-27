@@ -1,6 +1,24 @@
 import { tokenTypes } from "./tokenTypes";
 import { copy } from "./util";
 
+const keywords = new Map();
+keywords.set("and", tokenTypes.AND);
+keywords.set("class", tokenTypes.CLASS);
+keywords.set("else", tokenTypes.ELSE);
+keywords.set("false", tokenTypes.FALSE);
+keywords.set("for", tokenTypes.FOR);
+keywords.set("fun", tokenTypes.FUN);
+keywords.set("if", tokenTypes.IF);
+keywords.set("nil", tokenTypes.NIL);
+keywords.set("or", tokenTypes.OR);
+keywords.set("print", tokenTypes.PRINT);
+keywords.set("return", tokenTypes.RETURN);
+keywords.set("super", tokenTypes.SUPER);
+keywords.set("this", tokenTypes.THIS);
+keywords.set("true", tokenTypes.TRUE);
+keywords.set("var", tokenTypes.VAR);
+keywords.set("while", tokenTypes.WHILE);
+
 function createToken() {
   return {
     type: null,
@@ -52,6 +70,15 @@ function isDigit(c) {
   const a = "0".charCodeAt();
   const b = "9".charCodeAt();
   return x >= a && x <= b;
+}
+
+function isAlpha(c) {
+  const x = c.charCodeAt();
+  return (
+    (x >= "a".charCodeAt() && x <= "z".charCodeAt()) ||
+    (x >= "A".charCodeAt() && x <= "Z".charCodeAt()) ||
+    c === "_"
+  );
 }
 
 function step(ls) {
@@ -108,6 +135,10 @@ function step(ls) {
       ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.SLASH;
       ls.state = "possible multichar token found";
+    } else if(isAlpha(ls.currentChar)) {
+      ls.wipToken.lexeme = ls.currentChar;
+      ls.wipToken.type = tokenTypes.IDENTIFIER;
+      ls.state = "identifier found";
     } else if(ls.currentChar === "\"") {
       ls.wipToken.type = tokenTypes.STRING;
       ls.wipToken.literalValue = "";
@@ -211,6 +242,17 @@ function step(ls) {
       ls.state = "token found";
     } else {
       ls.wipToken.literalValue += ls.currentChar;
+      ls.currentPos++;
+      refresh(ls);
+    }
+  } else if (ls.state == "identifier found") {
+    if (isAlpha(ls.currentChar) == false) {
+      if (keywords.has(ls.wipToken.lexeme)) {
+        ls.wipToken.type = keywords.get(ls.wipToken.lexeme);
+      }
+      ls.state = "token found";
+    } else {
+      ls.wipToken.lexeme += ls.currentChar;
       ls.currentPos++;
       refresh(ls);
     }
