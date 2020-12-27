@@ -206,8 +206,6 @@ function step(ls) {
   } else if (ls.state == "number found") {
     if (isDigit(ls.currentChar) == false && ls.currentChar !== ".") {
       ls.state = "token found";
-      ls.currentPos++;
-      refresh(ls);
     } else {
       ls.wipToken.literalValue += ls.currentChar;
       ls.currentPos++;
