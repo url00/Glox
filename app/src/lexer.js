@@ -101,18 +101,22 @@ function step(ls) {
       ls.wipToken.type = tokenTypes.COMMA;
       ls.state = "token found";
     } else if (ls.currentChar === ".") {
+      ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.DOT;
       ls.state = "token found";
     } else if (ls.currentChar === "-") {
+      ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.MINUS;
       ls.state = "token found";
     } else if (ls.currentChar === "+") {
+      ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.PLUS;
       ls.state = "token found";
     } else if (ls.currentChar === ";") {
       ls.wipToken.type = tokenTypes.SEMICOLON;
       ls.state = "token found";
     } else if (ls.currentChar === "*") {
+      ls.wipToken.lexeme = ls.currentChar;
       ls.wipToken.type = tokenTypes.STAR;
       ls.state = "token found";
     } else if(ls.currentChar === "!") {
