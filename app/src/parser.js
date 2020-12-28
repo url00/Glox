@@ -1,5 +1,5 @@
 import { tokenTypes } from "./tokenTypes";
-import { createToken } from "./lexer";
+import lexer from "./lexer";
 
 const exprTypes = {
     ROOT: "ROOT",
@@ -56,16 +56,17 @@ function createState(ls) {
     state: "parsing"
   };
   ps.ast.type = exprTypes.ROOT;
+  return ps;
 }
 
 function generateTestingState() {
-  const t1 = createToken();
+  const t1 = lexer.createToken();
   t1.type = tokenTypes.NUMBER;
   t1.literalValue = "2";
-  const t2 = createToken();
+  const t2 = lexer.createToken();
   t2.lexeme = "+";
   t2.type = tokenTypes.PLUS;
-  const t3 = createToken();
+  const t3 = lexer.createToken();
   t3.type = tokenTypes.NUMBER;
   t3.literalValue = "1";
   const x = createState(null);
@@ -86,7 +87,7 @@ function astPrinter(ps) {
             x += " ";
             if (false) {
             } else if (ii.type === exprTypes.BINARY) {
-                x += parenthesize(ii.children[2].lexeme, ii.children[0], ii.children[1]);
+                x += parenthesize(ii.children[2].lexeme, ii);
             } else if (ii.type === exprTypes.GROUPING) {
                 x += parenthesize("group", ii);
             } else if (ii.type === exprTypes.LITERAL) {
@@ -98,17 +99,18 @@ function astPrinter(ps) {
             } else if (ii.type === exprTypes.UNARY) {
                 x += parenthesize(ii.children[1].lexeme, ii.children[0]);
             } else {
-                ps.errors.push("unknown expression type: " + a.type);
+                ps.errors.push("unknown expression type: " + ii.type);
             }
         }
         x += ")";
         return x;
     }
-    return parenthesize(ps.ast);
+    return parenthesize("root", ps.ast);
 }
 
 const exports = {
     astPrinter,
     generateTestingState
 }
+window.app_parser = exports;
 export default exports;

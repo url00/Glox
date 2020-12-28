@@ -3,6 +3,7 @@ import useInterval from "@use-it/interval";
 import * as d3 from "d3";
 import styled from "styled-components";
 import lexer from "./lexer";
+import parser from "./parser";
 import produce from "immer";
 import { copy } from "./util";
 
