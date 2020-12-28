@@ -107,7 +107,8 @@ function astPrinter(ps) {
     return parenthesize(ps.ast);
 }
 
-export default {
+const exports = {
     astPrinter,
     generateTestingState
 }
+export default exports;

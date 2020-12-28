@@ -166,7 +166,7 @@ function step(ls) {
     ls.wipToken = createToken();
     ls.wipToken.startPos = ls.startPos;
     ls.state = "scanning";
-  } else if (ls.state == "possible multichar token found") {
+  } else if (ls.state === "possible multichar token found") {
     if(false) {
     } else if (ls.wipToken.type === tokenTypes.BANG) {
       if (ls.currentChar === "=") {
@@ -218,17 +218,17 @@ function step(ls) {
         ls.state = "token found";
       }
     }
-  } else if (ls.state == "comment found") {
+  } else if (ls.state === "comment found") {
     ls.currentPos++;
     refresh(ls);
-    if (ls.currentChar == "\n") {
+    if (ls.currentChar === "\n") {
       ls.wipToken = createToken();
       ls.startPos = ls.currentPos;
       ls.wipToken.startPos = ls.startPos;
       ls.state = "scanning";
     }
-  } else if (ls.state == "string found") {
-    if (ls.currentChar == "\"") {
+  } else if (ls.state === "string found") {
+    if (ls.currentChar === "\"") {
       ls.state = "token found";
       ls.currentPos++;
       refresh(ls);
@@ -237,16 +237,16 @@ function step(ls) {
       ls.currentPos++;
       refresh(ls);
     }
-  } else if (ls.state == "number found") {
-    if (isDigit(ls.currentChar) == false && ls.currentChar !== ".") {
+  } else if (ls.state === "number found") {
+    if (isDigit(ls.currentChar) === false && ls.currentChar !== ".") {
       ls.state = "token found";
     } else {
       ls.wipToken.literalValue += ls.currentChar;
       ls.currentPos++;
       refresh(ls);
     }
-  } else if (ls.state == "identifier found") {
-    if (isAlpha(ls.currentChar) == false) {
+  } else if (ls.state === "identifier found") {
+    if (isAlpha(ls.currentChar) === false) {
       if (keywords.has(ls.wipToken.lexeme)) {
         ls.wipToken.type = keywords.get(ls.wipToken.lexeme);
       }
@@ -269,9 +269,10 @@ function scan(ls) {
   }
 }
 
-export default {
+const exports = {
   createToken,
   createState,
   step,
   scan
 };
+export default exports;
