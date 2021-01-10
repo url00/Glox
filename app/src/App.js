@@ -261,14 +261,15 @@ flex: 1;
       .attr("fill", () => d3.schemeOranges[9][(Math.random() * 9) | 0]);
     
     let z = d3.zoomIdentity;
-    const zoomX = d3.zoom().scaleExtent([0.1, 10]);
-    const zoomY = d3.zoom().scaleExtent([0.2, 5]);
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 10])
+      .on("zoom", handleZoom);
     const tx = () => d3.zoomTransform(gx.node());
     const ty = () => d3.zoomTransform(gy.node());
-    gx.call(zoomX).attr("pointer-events", "none");
-    gy.call(zoomY).attr("pointer-events", "none");
+    gx.call(zoom).attr("pointer-events", "none");
+    gy.call(zoom).attr("pointer-events", "none");
 
-    const zoom = d3.zoom().on("zoom", function(e) {
+    function handleZoom(e) {
       const t = e.transform;
       const k = t.k / z.k;
       const point = e.sourceEvent ? d3.pointer(e) : [width / 2, height / 2];
@@ -280,17 +281,17 @@ flex: 1;
   
       if (k === 1) {
         // pure translation?
-        doX && gx.call(zoomX.translateBy, (t.x - z.x) / tx().k, 0);
-        doY && gy.call(zoomY.translateBy, 0, (t.y - z.y) / ty().k);
+        doX && gx.call(zoom.translateBy, (t.x - z.x) / tx().k, 0);
+        doY && gy.call(zoom.translateBy, 0, (t.y - z.y) / ty().k);
       } else {
         // if not, we're zooming on a fixed point
-        doX && gx.call(zoomX.scaleBy, shift ? 1 / k : k, point);
-        doY && gy.call(zoomY.scaleBy, k, point);
+        doX && gx.call(zoom.scaleBy, shift ? 1 / k : k, point);
+        doY && gy.call(zoom.scaleBy, k, point);
       }
 
       z = t;
       redraw();
-    });
+    }
 
     function redraw() {
       const xr = tx().rescaleX(x);
