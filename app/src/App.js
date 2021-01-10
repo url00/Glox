@@ -201,6 +201,132 @@ const JsonDisplay = ({ thing, ...props }) => {
   );
 };
 
+class LexerDisplay extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.drawTargetRef = React.createRef();
+    this.LexerDisplay_ = styled.div`
+padding: 0;
+margin: 0;
+display: flex;
+flex: 1;
+`;
+  }
+
+  componentDidMount() {
+    this.draw();
+  }
+
+
+
+  draw() {
+    const tr = this.drawTargetRef.current;
+    const data = Array.from({length: 100}, () => [100 * Math.random(), Math.random()]);
+    const width = tr.clientWidth;
+    const height = tr.clientHeight;
+    const x = d3.scaleLinear()
+      .domain(d3.extent(data, d => d[0]))
+      .range([30, width - 10])
+      .nice()
+    const y = d3.scaleLinear()
+      .domain(d3.extent(data, d => d[1]))
+      .range([height - 20, 10])
+      .nice()
+    const yAxis = (g, scale) => g
+      .attr("transform", `translate(${x(0)},0)`)
+      .call(d3.axisLeft(scale).ticks(12 * (height / width)))
+      .call(g => g.select(".domain").attr("display", "none"));
+    const xAxis = (g, scale) => g
+      .attr("transform", `translate(0,${y(0)})`)
+      .call(d3.axisBottom(scale).ticks(12))
+      .call(g => g.select(".domain").attr("display", "none"));
+
+    
+    const svg = d3
+      .select("#js_draw_target")
+      .append("svg")
+      .attr("viewBox", [0, 0, width, height])
+      .attr("width", width)
+      .attr("height", height);
+
+    const vo = svg.append("path");
+    const gx = svg.append("g");
+    const gy = svg.append("g");
+    const dots = svg
+      .append("g")
+      .selectAll("ellipse")
+      .data(data)
+      .join("ellipse")
+      .attr("fill", () => d3.schemeOranges[9][(Math.random() * 9) | 0]);
+    
+    let z = d3.zoomIdentity;
+    const zoomX = d3.zoom().scaleExtent([0.1, 10]);
+    const zoomY = d3.zoom().scaleExtent([0.2, 5]);
+    const tx = () => d3.zoomTransform(gx.node());
+    const ty = () => d3.zoomTransform(gy.node());
+    gx.call(zoomX).attr("pointer-events", "none");
+    gy.call(zoomY).attr("pointer-events", "none");
+
+    const zoom = d3.zoom().on("zoom", function(e) {
+      const t = e.transform;
+      const k = t.k / z.k;
+      const point = e.sourceEvent ? d3.pointer(e) : [width / 2, height / 2];
+      
+      // is it on an axis? is the shift key pressed?
+      const doX = point[0] > x.range()[0];
+      const doY = point[1] < y.range()[0];
+      const shift = e.sourceEvent && e.sourceEvent.shiftKey;
+  
+      if (k === 1) {
+        // pure translation?
+        doX && gx.call(zoomX.translateBy, (t.x - z.x) / tx().k, 0);
+        doY && gy.call(zoomY.translateBy, 0, (t.y - z.y) / ty().k);
+      } else {
+        // if not, we're zooming on a fixed point
+        doX && gx.call(zoomX.scaleBy, shift ? 1 / k : k, point);
+        doY && gy.call(zoomY.scaleBy, k, point);
+      }
+
+      z = t;
+      redraw();
+    });
+
+    function redraw() {
+      const xr = tx().rescaleX(x);
+      const yr = ty().rescaleY(y);
+  
+      gx.call(xAxis, xr);
+      gy.call(yAxis, yr);
+  
+      dots
+        .attr("cx", d => xr(d[0]))
+        .attr("cy", d => yr(d[1]))
+        .attr("rx", 6 * Math.sqrt(tx().k))
+        .attr("ry", 6 * Math.sqrt(ty().k));
+  
+      vo.attr(
+        "d",
+        d3.Delaunay.from(data.map(d => [xr(d[0]), yr(d[1])]))
+          .voronoi([35, 0, width, height - 25])
+          .render()
+      )
+        .attr("fill", "none")
+        .attr("stroke", "#ccc")
+        .attr("stroke-width", 0.5);
+    }
+
+    svg
+      .call(zoom)
+      .call(zoom.transform, d3.zoomIdentity.scale(0.8));
+  }
+
+  render() {
+    return <this.LexerDisplay_ id="js_draw_target" ref={this.drawTargetRef}></this.LexerDisplay_>
+  }
+
+}
+
 class App extends React.Component {
   constructor() {
     super();
@@ -209,6 +335,8 @@ class App extends React.Component {
     if (false) {
     } else if (as.display === "JsonDisplay") {
       dg = this.createJsonDisplayGenerator();
+    } else if (as.display === "LexerDisplay") {
+      dg = this.createLexerDisplayGenerator();
     }
     const ns = {
       consoleInput: "",
@@ -232,6 +360,12 @@ class App extends React.Component {
         reactState
       };
       return <JsonDisplay thing={thing} />;
+    });
+  }
+
+  createLexerDisplayGenerator = () => {
+    return ((state) => {
+      return <LexerDisplay />;
     });
   }
 
@@ -274,6 +408,17 @@ subcommand can be one of:
         );
         const as = getAppState();
         as.display = "JsonDisplay";
+        setAppState(as);
+      } else if (command.is("l")) {
+        const dg = this.createLexerDisplayGenerator();
+        this.setState(
+          produce((x) => {
+            x.displayGenerator = dg;
+            x.display = dg(this.state);
+          })
+        );
+        const as = getAppState();
+        as.display = "LexerDisplay";
         setAppState(as);
       } else {
         o.push(`usage: d <subcommand> [<args>]
